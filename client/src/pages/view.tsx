@@ -1,14 +1,16 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useParams, useLocation } from "wouter";
 import { useGameSocket } from "@/lib/useGameSocket";
+import { useAnimatedNumber, useScoreGlow } from "@/lib/useAnimatedNumber";
+import { motion, AnimatePresence } from "framer-motion";
 import type { GameWithScores, PlayerScore } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Medal, Gamepad2, ArrowLeft, Wifi, Clock } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 
 function RankIcon({ rank }: { rank: number }) {
   if (rank === 1) return <Trophy className="w-6 h-6 text-yellow-500" />;
@@ -23,11 +25,20 @@ function RankIcon({ rank }: { rank: number }) {
 
 function PlayerRow({ ps, maxScore }: { ps: PlayerScore; maxScore: number }) {
   const barPct = maxScore <= 0 ? 0 : Math.max(0, Math.min(100, (ps.total / maxScore) * 100));
+  const animatedScore = useAnimatedNumber(ps.total, 650);
+  const animatedBar = useAnimatedNumber(Math.round(barPct * 10), 700);
+  const isGlowing = useScoreGlow(ps.total);
 
   return (
-    <div
+    <motion.div
       data-testid={`row-player-${ps.player.id}`}
-      className={`rounded-lg border p-4 sm:p-5 transition-all ${
+      animate={{
+        boxShadow: isGlowing
+          ? `0 0 0 2px ${ps.player.color}55, 0 0 24px 6px ${ps.player.color}28`
+          : "0 0 0 0px transparent, 0 0 0px 0px transparent",
+      }}
+      transition={{ duration: isGlowing ? 0.08 : 0.8, ease: "easeOut" }}
+      className={`rounded-lg border p-4 sm:p-5 ${
         ps.rank === 1
           ? "border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/10"
           : "border-card-border bg-card"
@@ -47,19 +58,20 @@ function PlayerRow({ ps, maxScore }: { ps: PlayerScore; maxScore: number }) {
           className="text-4xl font-bold tabular-nums"
           style={{ color: ps.player.color }}
         >
-          {ps.total}
+          {animatedScore}
         </span>
       </div>
       <div className="h-2 rounded-full bg-secondary overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-700"
+          className="h-full rounded-full"
           style={{
-            width: `${barPct}%`,
+            width: `${animatedBar / 10}%`,
             backgroundColor: ps.player.color,
+            transition: "width 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -171,11 +183,20 @@ export default function ViewPage() {
             <p className="text-muted-foreground">No players have been added yet.</p>
           </div>
         ) : (
-          <div className="space-y-3 mb-8">
-            {game.playerScores.map((ps) => (
-              <PlayerRow key={ps.player.id} ps={ps} maxScore={maxScore} />
-            ))}
-          </div>
+          <motion.div layout className="flex flex-col gap-3 mb-8">
+            <AnimatePresence initial={false}>
+              {game.playerScores.map((ps) => (
+                <motion.div
+                  key={ps.player.id}
+                  layout
+                  layoutId={`view-player-${ps.player.id}`}
+                  transition={{ layout: { type: "spring", stiffness: 340, damping: 32 } }}
+                >
+                  <PlayerRow ps={ps} maxScore={maxScore} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {/* Back to home */}

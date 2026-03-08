@@ -4,6 +4,8 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation, useParams } from "wouter";
 import { useGameSocket } from "@/lib/useGameSocket";
+import { useAnimatedNumber, useScoreGlow } from "@/lib/useAnimatedNumber";
+import { motion, AnimatePresence } from "framer-motion";
 import type { GameWithScores, PlayerScore } from "@shared/schema";
 import { PLAYER_COLORS } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -47,7 +49,11 @@ function RankIcon({ rank }: { rank: number }) {
   if (rank === 1) return <Trophy className="w-5 h-5 text-yellow-500" />;
   if (rank === 2) return <Medal className="w-5 h-5 text-slate-400" />;
   if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
-  return <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-muted-foreground">#{rank}</span>;
+  return (
+    <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-muted-foreground">
+      #{rank}
+    </span>
+  );
 }
 
 function PlayerCard({
@@ -64,9 +70,18 @@ function PlayerCard({
   const [customAmount, setCustomAmount] = useState("1");
   const amount = parseInt(customAmount, 10) || 1;
 
+  const animatedScore = useAnimatedNumber(ps.total);
+  const isGlowing = useScoreGlow(ps.total);
+
   return (
-    <div
+    <motion.div
       data-testid={`card-player-${ps.player.id}`}
+      animate={{
+        boxShadow: isGlowing
+          ? `0 0 0 2px ${ps.player.color}55, 0 0 18px 4px ${ps.player.color}28`
+          : "0 0 0 0px transparent, 0 0 0px 0px transparent",
+      }}
+      transition={{ duration: isGlowing ? 0.08 : 0.7, ease: "easeOut" }}
       className="rounded-lg border border-card-border bg-card p-4"
     >
       <div className="flex items-center justify-between mb-3">
@@ -85,7 +100,7 @@ function PlayerCard({
           className="text-3xl font-bold tabular-nums"
           style={{ color: ps.player.color }}
         >
-          {ps.total}
+          {animatedScore}
         </span>
       </div>
 
@@ -135,7 +150,7 @@ function PlayerCard({
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -452,19 +467,27 @@ export default function GamePage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {game.playerScores.map((ps) => (
-                  <PlayerCard
-                    key={ps.player.id}
-                    ps={ps}
-                    isActive={game.isActive}
-                    onAddScore={(playerId, delta) =>
-                      scoreMutation.mutate({ playerId, delta })
-                    }
-                    isPending={scoreMutation.isPending}
-                  />
-                ))}
-              </div>
+              <motion.div layout className="flex flex-col gap-3">
+                <AnimatePresence initial={false}>
+                  {game.playerScores.map((ps) => (
+                    <motion.div
+                      key={ps.player.id}
+                      layout
+                      layoutId={`game-player-${ps.player.id}`}
+                      transition={{ layout: { type: "spring", stiffness: 380, damping: 35 } }}
+                    >
+                      <PlayerCard
+                        ps={ps}
+                        isActive={game.isActive}
+                        onAddScore={(playerId, delta) =>
+                          scoreMutation.mutate({ playerId, delta })
+                        }
+                        isPending={scoreMutation.isPending}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </CardContent>
         </Card>
@@ -476,7 +499,7 @@ export default function GamePage() {
               <CardTitle className="text-base">Score Log</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-1.5 max-h-64 overflow-y-auto">
+              <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto">
                 {[...game.scoreEntries].reverse().map((entry) => {
                   const player = game.players.find((p) => p.id === entry.playerId);
                   if (!player) return null;

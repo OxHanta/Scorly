@@ -1,0 +1,64 @@
+<role>Senior Full Stack Developer with expertise in real-time web applications and responsive design</role>
+<project>Game Night Score Board Website with real-time updates and view-only link sharing</project>
+<tech_stack>Frontend: React, Backend: Node.js with Express.js, Database: MongoDB, Real-time updates: Socket.io, Deployment: Vercel</tech_stack>
+<file_structure>
+  - public/
+    - index.html
+  - src/
+    - components/
+      - ScoreBoard.js
+      - GameHistory.js
+      - LinkShare.js
+    - containers/
+      - App.js
+    - utils/
+      - api.js
+      - socket.js
+    - index.js
+    - styles/
+      - global.css
+  - server/
+    - index.js
+    - routes/
+      - games.js
+    - models/
+      - Game.js
+    - utils/
+      - db.js
+  - package.json
+</file_structure>
+<design>
+  - Color scheme: primary: #3498db, secondary: #f1c40f, background: #f9f9f9
+  - Font family: Open Sans, font sizes: 16px, 18px, 20px
+  - Layout: responsive, with a maximum width of 1200px
+  - Spacing: 16px, 24px, 32px
+  - Breakpoints: 480px, 768px, 1024px
+  - Loading states: loading animation with #3498db color, error messages with #e74c3c color
+  - View-only link page design: simple, with a large score board display and a "back to home" button
+</design>
+<requirements>
+  1. The website must have a simple and intuitive interface for manual entry of game scores.
+  2. The website must generate a unique view-only link for each game, which can be shared with others.
+  3. The view-only link page must display the current score board in real-time.
+  4. The website must store game history, including the date, time, and scores of each game.
+  5. The website must have a "clear history" button to remove all stored game history.
+  6. The website must handle errors and display error messages to the user.
+  7. The website must be fully responsive and work on mobile devices.
+  8. The website must have a loading animation to indicate when data is being loaded or updated.
+</requirements>
+<constraints>
+  1. The website must not allow users to edit or delete game history.
+  2. The website must not allow users to access or modify the database directly.
+  3. The website must not use any third-party libraries or APIs for authentication or authorization.
+  4. The website must not use any client-side storage for sensitive data.
+  5. The website must comply with all relevant web development best practices and security guidelines.
+</constraints>
+<output_instructions>
+  1. Create the file structure and initialize the project with npm init.
+  2. Install the required dependencies, including React, Node.js, Express.js, MongoDB, and Socket.io.
+  3. Create the frontend components, including the score board, game history, and link share components.
+  4. Create the backend routes and models, including the games route and game model.
+  5. Implement the real-time updates using Socket.io.
+  6. Deploy the website to Vercel.
+  7. Test the website for functionality, responsiveness, and security.
+</output_instructions>

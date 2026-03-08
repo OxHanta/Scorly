@@ -185,7 +185,7 @@ export default function ViewPage() {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Gamepad2 className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="text-sm font-medium text-muted-foreground">Game Night</span>
+            <span className="text-sm font-medium text-muted-foreground">Scorely</span>
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">{game.name}</h1>
           <div className="flex items-center justify-center gap-3 flex-wrap">

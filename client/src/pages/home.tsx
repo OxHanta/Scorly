@@ -191,7 +191,7 @@ export default function HomePage() {
               <Gamepad2 className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground leading-tight">Game Night</h1>
+              <h1 className="text-2xl font-bold text-foreground leading-tight">Scorely</h1>
               <p className="text-sm text-muted-foreground">Score board & live sharing</p>
             </div>
           </div>

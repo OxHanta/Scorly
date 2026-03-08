@@ -407,7 +407,7 @@ export default function GamePage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-destructive font-medium mb-3">Game not found</p>
-          <Button onClick={() => setLocation("/")}>
+          <Button onClick={() => setLocation("/dashboard")}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -429,7 +429,7 @@ export default function GamePage() {
             data-testid="button-back"
             variant="ghost"
             size="icon"
-            onClick={() => setLocation("/")}
+            onClick={() => setLocation("/dashboard")}
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>

@@ -162,7 +162,7 @@ export default function ViewPage() {
           <p className="text-muted-foreground text-sm mb-4">
             This link may be invalid or the game has been deleted.
           </p>
-          <Button onClick={() => setLocation("/")}>
+          <Button onClick={() => setLocation("/dashboard")}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -249,7 +249,7 @@ export default function ViewPage() {
           <Button
             data-testid="button-back-home"
             variant="outline"
-            onClick={() => setLocation("/")}
+            onClick={() => setLocation("/dashboard")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home

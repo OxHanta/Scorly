@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -6,6 +6,7 @@ import { useLocation, useParams } from "wouter";
 import { useGameSocket } from "@/lib/useGameSocket";
 import { useAnimatedNumber, useScoreGlow } from "@/lib/useAnimatedNumber";
 import { motion, AnimatePresence } from "framer-motion";
+import { Confetti } from "@/components/confetti";
 import type { GameWithScores, PlayerScore } from "@shared/schema";
 import { PLAYER_COLORS } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ import {
   StopCircle,
   Medal,
   Eye,
+  Crown,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -53,6 +55,22 @@ function RankIcon({ rank }: { rank: number }) {
     <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-muted-foreground">
       #{rank}
     </span>
+  );
+}
+
+function WinnerBadge() {
+  return (
+    <motion.span
+      initial={{ scale: 0, opacity: 0, y: -4 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 500, damping: 22, delay: 0.15 }}
+      className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full
+        bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400
+        border border-yellow-300 dark:border-yellow-700 flex-shrink-0"
+    >
+      <Crown className="w-3 h-3" />
+      Winner!
+    </motion.span>
   );
 }
 
@@ -72,6 +90,7 @@ function PlayerCard({
 
   const animatedScore = useAnimatedNumber(ps.total);
   const isGlowing = useScoreGlow(ps.total);
+  const isWinner = !isActive && ps.rank === 1;
 
   return (
     <motion.div
@@ -85,19 +104,22 @@ function PlayerCard({
       className="rounded-lg border border-card-border bg-card p-4"
     >
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <RankIcon rank={ps.rank} />
           <div
             className="w-3 h-3 rounded-full flex-shrink-0"
             style={{ backgroundColor: ps.player.color }}
           />
-          <span className="font-semibold text-foreground truncate max-w-[120px]">
+          <span className="font-semibold text-foreground truncate max-w-[110px]">
             {ps.player.name}
           </span>
+          <AnimatePresence>
+            {isWinner && <WinnerBadge />}
+          </AnimatePresence>
         </div>
         <span
           data-testid={`text-score-${ps.player.id}`}
-          className="text-3xl font-bold tabular-nums"
+          className="text-3xl font-bold tabular-nums flex-shrink-0 ml-3"
           style={{ color: ps.player.color }}
         >
           {animatedScore}
@@ -313,6 +335,8 @@ export default function GamePage() {
   const gameId = params.id;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [showConfetti, setShowConfetti] = useState(false);
+  const prevActiveRef = useRef<boolean | undefined>(undefined);
 
   const { data: game, isLoading, error } = useQuery<GameWithScores>({
     queryKey: ["/api/games", gameId],
@@ -322,6 +346,16 @@ export default function GamePage() {
       return res.json();
     },
   });
+
+  useEffect(() => {
+    if (game === undefined) return;
+    if (prevActiveRef.current === true && game.isActive === false) {
+      setShowConfetti(true);
+      const t = setTimeout(() => setShowConfetti(false), 4200);
+      return () => clearTimeout(t);
+    }
+    prevActiveRef.current = game.isActive;
+  }, [game?.isActive]);
 
   const onSocketUpdate = useCallback(
     (updatedGame: GameWithScores) => {
@@ -386,6 +420,8 @@ export default function GamePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Confetti active={showConfetti} />
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 flex-wrap">

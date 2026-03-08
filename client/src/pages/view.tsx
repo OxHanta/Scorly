@@ -1,15 +1,16 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useParams, useLocation } from "wouter";
 import { useGameSocket } from "@/lib/useGameSocket";
 import { useAnimatedNumber, useScoreGlow } from "@/lib/useAnimatedNumber";
 import { motion, AnimatePresence } from "framer-motion";
+import { Confetti } from "@/components/confetti";
 import type { GameWithScores, PlayerScore } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Medal, Gamepad2, ArrowLeft, Wifi, Clock } from "lucide-react";
+import { Trophy, Medal, Gamepad2, ArrowLeft, Wifi, Clock, Crown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 function RankIcon({ rank }: { rank: number }) {
@@ -23,11 +24,35 @@ function RankIcon({ rank }: { rank: number }) {
   );
 }
 
-function PlayerRow({ ps, maxScore }: { ps: PlayerScore; maxScore: number }) {
+function WinnerBadge() {
+  return (
+    <motion.span
+      initial={{ scale: 0, opacity: 0, y: -4 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 500, damping: 22, delay: 0.2 }}
+      className="inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-0.5 rounded-full
+        bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400
+        border border-yellow-300 dark:border-yellow-700 flex-shrink-0"
+    >
+      <Crown className="w-3.5 h-3.5" />
+      Winner!
+    </motion.span>
+  );
+}
+
+function PlayerRow({
+  ps,
+  maxScore,
+  gameEnded,
+}: {
+  ps: PlayerScore;
+  maxScore: number;
+  gameEnded: boolean;
+}) {
   const barPct = maxScore <= 0 ? 0 : Math.max(0, Math.min(100, (ps.total / maxScore) * 100));
   const animatedScore = useAnimatedNumber(ps.total, 650);
-  const animatedBar = useAnimatedNumber(Math.round(barPct * 10), 700);
   const isGlowing = useScoreGlow(ps.total);
+  const isWinner = gameEnded && ps.rank === 1;
 
   return (
     <motion.div
@@ -39,7 +64,9 @@ function PlayerRow({ ps, maxScore }: { ps: PlayerScore; maxScore: number }) {
       }}
       transition={{ duration: isGlowing ? 0.08 : 0.8, ease: "easeOut" }}
       className={`rounded-lg border p-4 sm:p-5 ${
-        ps.rank === 1
+        isWinner
+          ? "border-yellow-300 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/10"
+          : ps.rank === 1
           ? "border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/10"
           : "border-card-border bg-card"
       }`}
@@ -50,12 +77,15 @@ function PlayerRow({ ps, maxScore }: { ps: PlayerScore; maxScore: number }) {
           className="w-3.5 h-3.5 rounded-full flex-shrink-0"
           style={{ backgroundColor: ps.player.color }}
         />
-        <span className="font-semibold text-foreground text-lg flex-1 truncate">
+        <span className="font-semibold text-foreground text-lg flex-1 min-w-0 truncate">
           {ps.player.name}
         </span>
+        <AnimatePresence>
+          {isWinner && <WinnerBadge />}
+        </AnimatePresence>
         <span
           data-testid={`text-score-${ps.player.id}`}
-          className="text-4xl font-bold tabular-nums"
+          className="text-4xl font-bold tabular-nums flex-shrink-0"
           style={{ color: ps.player.color }}
         >
           {animatedScore}
@@ -65,7 +95,7 @@ function PlayerRow({ ps, maxScore }: { ps: PlayerScore; maxScore: number }) {
         <div
           className="h-full rounded-full"
           style={{
-            width: `${animatedBar / 10}%`,
+            width: `${barPct}%`,
             backgroundColor: ps.player.color,
             transition: "width 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
@@ -79,6 +109,8 @@ export default function ViewPage() {
   const params = useParams<{ shareId: string }>();
   const shareId = params.shareId;
   const [, setLocation] = useLocation();
+  const [showConfetti, setShowConfetti] = useState(false);
+  const prevActiveRef = useRef<boolean | undefined>(undefined);
 
   const { data: game, isLoading, error } = useQuery<GameWithScores>({
     queryKey: ["/api/view", shareId],
@@ -88,6 +120,16 @@ export default function ViewPage() {
       return res.json();
     },
   });
+
+  useEffect(() => {
+    if (game === undefined) return;
+    if (prevActiveRef.current === true && game.isActive === false) {
+      setShowConfetti(true);
+      const t = setTimeout(() => setShowConfetti(false), 4200);
+      return () => clearTimeout(t);
+    }
+    prevActiveRef.current = game.isActive;
+  }, [game?.isActive]);
 
   const onSocketUpdate = useCallback(
     (updatedGame: GameWithScores) => {
@@ -130,9 +172,12 @@ export default function ViewPage() {
   }
 
   const maxScore = Math.max(1, ...game.playerScores.map((ps) => ps.total));
+  const gameEnded = !game.isActive;
 
   return (
     <div className="min-h-screen bg-background">
+      <Confetti active={showConfetti} />
+
       <div className="max-w-lg mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -192,7 +237,7 @@ export default function ViewPage() {
                   layoutId={`view-player-${ps.player.id}`}
                   transition={{ layout: { type: "spring", stiffness: 340, damping: 32 } }}
                 >
-                  <PlayerRow ps={ps} maxScore={maxScore} />
+                  <PlayerRow ps={ps} maxScore={maxScore} gameEnded={gameEnded} />
                 </motion.div>
               ))}
             </AnimatePresence>

@@ -4,5 +4,7 @@ export const modules: ModuleMap = {
   "./components/mockups/scorely-landing/ArcadeCabinet.tsx": () => import("../components/mockups/scorely-landing/ArcadeCabinet.tsx"),
   "./components/mockups/scorely-landing/LiveScoreboard.tsx": () => import("../components/mockups/scorely-landing/LiveScoreboard.tsx"),
   "./components/mockups/scorely-landing/NeonTypography.tsx": () => import("../components/mockups/scorely-landing/NeonTypography.tsx"),
-  "./components/mockups/scorely-landing/TrophyPodium.tsx": () => import("../components/mockups/scorely-landing/TrophyPodium.tsx")
+  "./components/mockups/scorely-landing/TrophyGrand.tsx": () => import("../components/mockups/scorely-landing/TrophyGrand.tsx"),
+  "./components/mockups/scorely-landing/TrophyPodium.tsx": () => import("../components/mockups/scorely-landing/TrophyPodium.tsx"),
+  "./components/mockups/scorely-landing/TrophyPolished.tsx": () => import("../components/mockups/scorely-landing/TrophyPolished.tsx")
 };

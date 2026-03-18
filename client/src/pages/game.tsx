@@ -11,7 +11,6 @@ import type { GameWithScores, PlayerScore } from "@shared/schema";
 import { PLAYER_COLORS } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -44,15 +43,16 @@ import {
   Medal,
   Eye,
   Crown,
+  Clock,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 function RankIcon({ rank }: { rank: number }) {
-  if (rank === 1) return <Trophy className="w-5 h-5 text-yellow-500" />;
+  if (rank === 1) return <Trophy className="w-5 h-5 text-yellow-400" />;
   if (rank === 2) return <Medal className="w-5 h-5 text-slate-400" />;
   if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
   return (
-    <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-muted-foreground">
+    <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-slate-500">
       #{rank}
     </span>
   );
@@ -65,8 +65,7 @@ function WinnerBadge() {
       animate={{ scale: 1, opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 500, damping: 22, delay: 0.15 }}
       className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full
-        bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400
-        border border-yellow-300 dark:border-yellow-700 flex-shrink-0"
+        bg-yellow-900/40 text-yellow-400 border border-yellow-700 flex-shrink-0"
     >
       <Crown className="w-3 h-3" />
       Winner!
@@ -101,7 +100,7 @@ function PlayerCard({
           : "0 0 0 0px transparent, 0 0 0px 0px transparent",
       }}
       transition={{ duration: isGlowing ? 0.08 : 0.7, ease: "easeOut" }}
-      className="rounded-lg border border-card-border bg-card p-4"
+      className="rounded-xl border border-slate-800 bg-slate-900 p-4"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -110,7 +109,7 @@ function PlayerCard({
             className="w-3 h-3 rounded-full flex-shrink-0"
             style={{ backgroundColor: ps.player.color }}
           />
-          <span className="font-semibold text-foreground truncate max-w-[110px]">
+          <span className="font-semibold text-slate-100 truncate max-w-[110px]">
             {ps.player.name}
           </span>
           <AnimatePresence>
@@ -135,6 +134,7 @@ function PlayerCard({
               variant="outline"
               onClick={() => onAddScore(ps.player.id, -amount)}
               disabled={isPending}
+              className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 h-8 w-8"
             >
               <Minus className="w-3.5 h-3.5" />
             </Button>
@@ -144,7 +144,7 @@ function PlayerCard({
               min="1"
               value={customAmount}
               onChange={(e) => setCustomAmount(e.target.value)}
-              className="w-16 text-center"
+              className="w-16 text-center bg-slate-800 border-slate-700 text-slate-200 h-8"
             />
             <Button
               data-testid={`button-increment-${ps.player.id}`}
@@ -152,6 +152,7 @@ function PlayerCard({
               variant="outline"
               onClick={() => onAddScore(ps.player.id, amount)}
               disabled={isPending}
+              className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 h-8 w-8"
             >
               <Plus className="w-3.5 h-3.5" />
             </Button>
@@ -165,6 +166,7 @@ function PlayerCard({
                 variant="secondary"
                 onClick={() => onAddScore(ps.player.id, quick)}
                 disabled={isPending}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 h-8"
               >
                 +{quick}
               </Button>
@@ -196,6 +198,8 @@ function AddPlayerDialog({
     onSuccess: async (res) => {
       const game: GameWithScores = await res.json();
       queryClient.setQueryData(["/api/games", gameId], game);
+      // Also invalidate the games list so the dashboard reflects the new player
+      queryClient.invalidateQueries({ queryKey: ["/api/games"] });
       setOpen(false);
       setName("");
     },
@@ -213,18 +217,23 @@ function AddPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button data-testid="button-add-player" variant="outline" size="sm">
+        <Button
+          data-testid="button-add-player"
+          variant="outline"
+          size="sm"
+          className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300"
+        >
           <UserPlus className="w-3.5 h-3.5 mr-1.5" />
           Add Player
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="bg-slate-900 border-slate-700 text-slate-100">
         <DialogHeader>
-          <DialogTitle>Add Player</DialogTitle>
+          <DialogTitle className="text-slate-100">Add Player</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">
+            <label className="text-sm font-medium text-slate-300 mb-1.5 block">
               Player Name
             </label>
             <Input
@@ -233,10 +242,11 @@ function AddPlayerDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
+              className="bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
+            <label className="text-sm font-medium text-slate-300 mb-2 block">
               Color
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -245,7 +255,7 @@ function AddPlayerDialog({
                   key={c}
                   type="button"
                   data-testid={`button-color-${c}`}
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900"
                   style={{ backgroundColor: c }}
                   onClick={() => setColor(c)}
                 >
@@ -257,7 +267,7 @@ function AddPlayerDialog({
           <Button
             data-testid="button-confirm-add-player"
             type="submit"
-            className="w-full"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             disabled={!name.trim() || mutation.isPending}
           >
             {mutation.isPending ? "Adding..." : "Add Player"}
@@ -283,20 +293,25 @@ function ShareDialog({ game }: { game: GameWithScores }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button data-testid="button-share" variant="outline" size="sm">
+        <Button
+          data-testid="button-share"
+          variant="outline"
+          size="sm"
+          className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300"
+        >
           <Share2 className="w-3.5 h-3.5 mr-1.5" />
           Share
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="bg-slate-900 border-slate-700 text-slate-100">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="text-slate-100 flex items-center gap-2">
             <Eye className="w-4 h-4" />
             Share View-Only Link
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-3 mt-2">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-400">
             Anyone with this link can watch the score board in real-time without being able to edit it.
           </p>
           <div className="flex gap-2">
@@ -304,21 +319,22 @@ function ShareDialog({ game }: { game: GameWithScores }) {
               data-testid="input-share-url"
               value={shareUrl}
               readOnly
-              className="text-xs font-mono"
+              className="text-xs font-mono bg-slate-800 border-slate-700 text-slate-300"
             />
             <Button
               data-testid="button-copy-link"
               onClick={handleCopy}
               variant="outline"
               size="icon"
+              className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 flex-shrink-0"
             >
-              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
             </Button>
           </div>
           <Button
             data-testid="button-open-view"
             variant="secondary"
-            className="w-full"
+            className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
             onClick={() => window.open(shareUrl, "_blank")}
           >
             <Eye className="w-4 h-4 mr-2" />
@@ -393,10 +409,10 @@ export default function GamePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-6 max-w-3xl mx-auto">
-        <Skeleton className="h-8 w-48 mb-6" />
+      <div className="min-h-screen bg-slate-950 p-6 max-w-3xl mx-auto">
+        <Skeleton className="h-8 w-48 mb-6 bg-slate-800" />
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 rounded-lg" />)}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 rounded-xl bg-slate-800" />)}
         </div>
       </div>
     );
@@ -404,12 +420,15 @@ export default function GamePage() {
 
   if (error || !game) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-destructive font-medium mb-3">Game not found</p>
-          <Button onClick={() => setLocation("/dashboard")}>
+          <p className="text-red-400 font-medium mb-3">Game not found</p>
+          <Button
+            onClick={() => setLocation("/dashboard")}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            Back to Dashboard
           </Button>
         </div>
       </div>
@@ -419,28 +438,47 @@ export default function GamePage() {
   const usedColors = game.players.map((p) => p.color);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-950 text-slate-50">
       <Confetti active={showConfetti} />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+      {/* Top gradient accent */}
+      <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-blue-900/15 to-transparent pointer-events-none" />
+
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 relative z-10">
+
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <div className="flex items-center gap-3 mb-8 flex-wrap">
           <Button
             data-testid="button-back"
             variant="ghost"
             size="icon"
             onClick={() => setLocation("/dashboard")}
+            className="text-slate-400 hover:text-slate-200 hover:bg-slate-800"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold text-foreground truncate">{game.name}</h1>
-              <Badge variant={game.isActive ? "default" : "secondary"} data-testid="badge-game-status">
-                {game.isActive ? "Live" : "Ended"}
-              </Badge>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl font-bold text-white truncate">{game.name}</h1>
+              {game.isActive ? (
+                <Badge
+                  data-testid="badge-game-status"
+                  className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex gap-1.5 items-center"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live
+                </Badge>
+              ) : (
+                <Badge
+                  data-testid="badge-game-status"
+                  variant="outline"
+                  className="border-slate-700 text-slate-400"
+                >
+                  Ended
+                </Badge>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Started {formatDistanceToNow(new Date(game.createdAt), { addSuffix: true })}
             </p>
           </div>
@@ -454,23 +492,27 @@ export default function GamePage() {
                     variant="outline"
                     size="sm"
                     disabled={endMutation.isPending}
+                    className="border-slate-700 bg-slate-800 hover:bg-red-900/30 hover:border-red-700 hover:text-red-400 text-slate-300"
                   >
                     <StopCircle className="w-3.5 h-3.5 mr-1.5" />
                     End Game
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-slate-900 border-slate-700">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>End "{game.name}"?</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="text-slate-100">End "{game.name}"?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-slate-400">
                       The game will be moved to history. Scores are preserved and view-only links remain active.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+                      Cancel
+                    </AlertDialogCancel>
                     <AlertDialogAction
                       data-testid="button-confirm-end"
                       onClick={() => endMutation.mutate()}
+                      className="bg-red-600 hover:bg-red-700 text-white"
                     >
                       End Game
                     </AlertDialogAction>
@@ -481,26 +523,25 @@ export default function GamePage() {
           </div>
         </div>
 
-        {/* Scoreboard */}
-        <Card className="mb-6">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-yellow-500" />
-                Scoreboard
-              </CardTitle>
-              {game.isActive && (
-                <AddPlayerDialog gameId={gameId} usedColors={usedColors} />
-              )}
+        {/* Scoreboard card */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl mb-4 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 bg-yellow-500/10 rounded-lg">
+                <Trophy className="w-4 h-4 text-yellow-400" />
+              </div>
+              <span className="font-bold text-slate-100 text-base">Scoreboard</span>
             </div>
-          </CardHeader>
-          <CardContent>
+            {game.isActive && (
+              <AddPlayerDialog gameId={gameId} usedColors={usedColors} />
+            )}
+          </div>
+
+          <div className="p-5">
             {game.players.length === 0 ? (
-              <div className="text-center py-8">
-                <UserPlus className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm">
-                  Add players to get started
-                </p>
+              <div className="text-center py-10">
+                <UserPlus className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-slate-500 text-sm">Add players to get started</p>
               </div>
             ) : (
               <motion.div layout className="flex flex-col gap-3">
@@ -525,17 +566,20 @@ export default function GamePage() {
                 </AnimatePresence>
               </motion.div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Score History */}
+        {/* Score log */}
         {game.scoreEntries.length > 0 && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Score Log</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center gap-2.5 bg-slate-950/40">
+              <div className="p-1.5 bg-slate-800 rounded-lg">
+                <Clock className="w-4 h-4 text-slate-400" />
+              </div>
+              <span className="font-bold text-slate-300 text-base">Score Log</span>
+            </div>
+            <div className="p-5">
+              <div className="flex flex-col gap-1 max-h-64 overflow-y-auto">
                 {[...game.scoreEntries].reverse().map((entry) => {
                   const player = game.players.find((p) => p.id === entry.playerId);
                   if (!player) return null;
@@ -543,21 +587,21 @@ export default function GamePage() {
                     <div
                       key={entry.id}
                       data-testid={`row-entry-${entry.id}`}
-                      className="flex items-center justify-between text-sm py-1 border-b border-border last:border-0"
+                      className="flex items-center justify-between text-sm py-2 border-b border-slate-800 last:border-0"
                     >
                       <div className="flex items-center gap-2">
                         <span
                           className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ backgroundColor: player.color }}
                         />
-                        <span className="text-foreground">{player.name}</span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-slate-300">{player.name}</span>
+                        <span className="text-xs text-slate-600">
                           {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })}
                         </span>
                       </div>
                       <span
                         className={`font-semibold tabular-nums ${
-                          entry.delta >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                          entry.delta >= 0 ? "text-emerald-400" : "text-red-400"
                         }`}
                       >
                         {entry.delta >= 0 ? "+" : ""}{entry.delta}
@@ -566,8 +610,8 @@ export default function GamePage() {
                   );
                 })}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
     </div>

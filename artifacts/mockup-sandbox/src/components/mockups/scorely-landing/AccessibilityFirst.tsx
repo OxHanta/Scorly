@@ -158,8 +158,8 @@ export function AccessibilityFirst() {
                     {/* Score bar with high contrast */}
                     <div className="w-full h-4 bg-slate-800 rounded-full overflow-hidden" aria-hidden="true">
                       <div 
-                        className={\`h-full rounded-full \${player.colorClass} transition-all duration-500 ease-out\`}
-                        style={{ width: \`\${widthPercentage}%\` }}
+                        className={`h-full rounded-full ${player.colorClass} transition-all duration-500 ease-out`}
+                        style={{ width: `${widthPercentage}%` }}
                       />
                     </div>
                   </li>

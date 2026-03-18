@@ -1,263 +1,209 @@
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
-import { Gamepad2, Trophy, Zap } from "lucide-react";
+import { Trophy, Medal, Crown, Star, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
-const PARTICLE_COUNT = 22;
+const DEMO_PLAYERS = [
+  { id: 1, name: "Alex",   score: 2450, barColor: "bg-blue-500",    icon: <Crown className="w-5 h-5 text-yellow-400" /> },
+  { id: 2, name: "Jordan", score: 1820, barColor: "bg-emerald-500",  icon: <Medal className="w-5 h-5 text-slate-300" /> },
+  { id: 3, name: "Sam",    score: 1340, barColor: "bg-amber-500",    icon: <Medal className="w-5 h-5 text-amber-700" /> },
+  { id: 4, name: "Casey",  score:  980, barColor: "bg-purple-500",   icon: <Star  className="w-5 h-5 text-slate-400" /> },
+  { id: 5, name: "Taylor", score:  650, barColor: "bg-rose-500",     icon: <Star  className="w-5 h-5 text-slate-500" /> },
+];
 
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-  duration: number;
-  delay: number;
-  driftX: number;
-  driftY: number;
-}
+const INITIALS_COLORS = [
+  "bg-blue-600",
+  "bg-emerald-600",
+  "bg-amber-600",
+  "bg-purple-600",
+  "bg-rose-600",
+];
 
-function useParticles(): Particle[] {
-  return useMemo(() => {
-    const colors = [
-      "rgba(139,92,246,0.55)",
-      "rgba(99,102,241,0.45)",
-      "rgba(56,189,248,0.40)",
-      "rgba(168,85,247,0.50)",
-      "rgba(59,130,246,0.35)",
-      "rgba(236,72,153,0.30)",
-    ];
-    return Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
-      id: i,
-      x: (i * 4.7 + 3) % 96,
-      y: (i * 7.3 + 5) % 92,
-      size: 3 + (i % 5) * 2.2,
-      color: colors[i % colors.length],
-      duration: 5 + (i % 6) * 1.4,
-      delay: (i * 0.38) % 4,
-      driftX: ((i % 3) - 1) * 18,
-      driftY: -28 - (i % 4) * 14,
-    }));
-  }, []);
+function InitialAvatar({ name, colorClass }: { name: string; colorClass: string }) {
+  return (
+    <div
+      className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-bold text-sm text-white ${colorClass}`}
+      aria-label={name}
+    >
+      {name[0]}
+    </div>
+  );
 }
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
-  const particles = useParticles();
+
+  const [scores, setScores] = useState(
+    DEMO_PLAYERS.map((p, i) => ({ ...p, colorIdx: i }))
+  );
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setScores((prev) => {
+        const next = [...prev];
+        const idx = Math.floor(Math.random() * next.length);
+        next[idx] = {
+          ...next[idx],
+          score: next[idx].score + Math.floor(Math.random() * 50) + 10,
+        };
+        return next.sort((a, b) => b.score - a.score);
+      });
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
+
+  const maxScore = Math.max(...scores.map((s) => s.score));
 
   return (
-    <div
-      className="relative min-h-screen w-full overflow-hidden flex items-center justify-center"
-      style={{
-        background:
-          "radial-gradient(ellipse 80% 60% at 50% 40%, #1a0b3e 0%, #0d0a2e 35%, #060016 70%, #020008 100%)",
-      }}
-    >
-      {/* Ambient orbs */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: "15%",
-          left: "20%",
-          width: 340,
-          height: 340,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)",
-          filter: "blur(40px)",
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          bottom: "18%",
-          right: "18%",
-          width: 280,
-          height: 280,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)",
-          filter: "blur(36px)",
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: "55%",
-          left: "55%",
-          width: 200,
-          height: 200,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(56,189,248,0.10) 0%, transparent 70%)",
-          filter: "blur(32px)",
-        }}
-      />
+    <div className="min-h-screen bg-slate-950 text-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Background glow orbs */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Floating particles */}
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: p.size,
-            height: p.size,
-            backgroundColor: p.color,
-            boxShadow: `0 0 ${p.size * 2}px ${p.color}`,
-          }}
-          animate={{
-            x: [0, p.driftX, 0],
-            y: [0, p.driftY, 0],
-            opacity: [0.2, 0.9, 0.2],
-            scale: [1, 1.4, 1],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
+      {/* Subtle grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
-      {/* Content */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center text-center px-6 max-w-2xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.9, ease: "easeOut" }}
-      >
-        {/* Logo */}
-        <motion.div
-          className="mb-8 flex items-center justify-center"
-          initial={{ opacity: 0, scale: 0.7, y: -20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
-        >
-          <motion.div
-            className="relative flex items-center justify-center"
-            animate={{
-              filter: [
-                "drop-shadow(0 0 10px rgba(139,92,246,0.7)) drop-shadow(0 0 24px rgba(99,102,241,0.4))",
-                "drop-shadow(0 0 22px rgba(139,92,246,1)) drop-shadow(0 0 50px rgba(99,102,241,0.65)) drop-shadow(0 0 80px rgba(56,189,248,0.3))",
-                "drop-shadow(0 0 10px rgba(139,92,246,0.7)) drop-shadow(0 0 24px rgba(99,102,241,0.4))",
-              ],
-            }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div
-              className="w-24 h-24 rounded-3xl flex items-center justify-center"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(139,92,246,0.25) 0%, rgba(99,102,241,0.20) 50%, rgba(56,189,248,0.15) 100%)",
-                border: "1px solid rgba(139,92,246,0.35)",
-                backdropFilter: "blur(12px)",
-              }}
-            >
-              <Gamepad2 className="w-12 h-12" style={{ color: "#a78bfa" }} />
-            </div>
-          </motion.div>
-        </motion.div>
+      <div className="max-w-6xl w-full z-10 grid lg:grid-cols-2 gap-12 items-center">
+        {/* ── Left column: copy + CTA ── */}
+        <div className="flex flex-col items-start text-left space-y-8">
+          <div className="space-y-4">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white drop-shadow-sm">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                Scorely
+              </span>
+            </h1>
+            <p className="text-xl sm:text-2xl font-medium text-slate-300 max-w-lg leading-relaxed">
+              Track scores, crown winners, and make every game night competitive.
+            </p>
+          </div>
 
-        {/* Headline */}
-        <motion.h1
-          className="font-black leading-tight mb-4 tracking-tight"
-          style={{
-            fontSize: "clamp(2.2rem, 6vw, 4rem)",
-            background:
-              "linear-gradient(135deg, #e9d5ff 0%, #a78bfa 35%, #818cf8 65%, #38bdf8 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
-        >
-          Scorely
-        </motion.h1>
-
-        {/* Tagline */}
-        <motion.p
-          className="mb-10 leading-relaxed font-medium"
-          style={{
-            color: "rgba(196,181,253,0.82)",
-            fontSize: "clamp(1rem, 2.5vw, 1.2rem)",
-            maxWidth: 440,
-          }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.42, ease: [0.22, 1, 0.36, 1] }}
-        >
-          Track scores, crown winners, and make every game night competitive.
-        </motion.p>
-
-        {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 18, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.55, delay: 0.58, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <motion.button
+          <Button
             data-testid="button-start-leaderboard"
+            size="lg"
             onClick={() => setLocation("/dashboard")}
-            className="relative group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white cursor-pointer select-none overflow-hidden"
-            style={{
-              background:
-                "linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #3b82f6 100%)",
-              border: "1px solid rgba(139,92,246,0.5)",
-              boxShadow:
-                "0 4px 24px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.12)",
-            }}
-            whileHover={{
-              scale: 1.04,
-              boxShadow:
-                "0 0 0 2px rgba(167,139,250,0.5), 0 8px 48px rgba(124,58,237,0.7), 0 0 80px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.18)",
-            }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            className="h-14 px-8 text-lg font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-[0_0_30px_-5px_rgba(37,99,235,0.4)] transition-all hover:scale-105"
           >
-            {/* Inner shimmer overlay */}
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
-              }}
-              initial={{ x: "-100%" }}
-              whileHover={{ x: "100%" }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-            />
-            <Zap className="w-5 h-5 flex-shrink-0" />
             Start a Leaderboard
-            <Trophy className="w-5 h-5 flex-shrink-0" />
-          </motion.button>
-        </motion.div>
+            <Play className="ml-2 w-5 h-5 fill-current" />
+          </Button>
 
-        {/* Feature hints */}
-        <motion.div
-          className="flex items-center gap-6 mt-10 flex-wrap justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          {["Real-time updates", "Shareable links", "Live animations"].map((feat) => (
-            <span
-              key={feat}
-              className="flex items-center gap-1.5 text-sm font-medium"
-              style={{ color: "rgba(167,139,250,0.65)" }}
-            >
-              <span
-                className="inline-block w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: "rgba(139,92,246,0.8)" }}
-              />
-              {feat}
-            </span>
-          ))}
-        </motion.div>
-      </motion.div>
+          <div className="flex items-center gap-3 text-sm text-slate-500 font-medium pt-2">
+            <div className="flex -space-x-2">
+              {["A", "B", "C", "D"].map((letter, i) => (
+                <div
+                  key={i}
+                  className={`w-8 h-8 rounded-full border-2 border-slate-950 flex items-center justify-center text-xs font-bold text-white ${INITIALS_COLORS[i % INITIALS_COLORS.length]}`}
+                >
+                  {letter}
+                </div>
+              ))}
+            </div>
+            <p>Join 10,000+ competitive players</p>
+          </div>
+        </div>
+
+        {/* ── Right column: live demo scoreboard ── */}
+        <div className="relative">
+          <div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl pointer-events-none" />
+
+          <Card className="bg-slate-900/80 border-slate-700/50 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden rounded-2xl transition-transform hover:-translate-y-2 duration-500">
+            {/* Card header */}
+            <div className="p-6 border-b border-slate-800/50 flex items-center gap-3 bg-slate-950/40">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Trophy className="w-6 h-6 text-blue-400" />
+              </div>
+              <div>
+                <h2 className="font-bold text-xl text-white">Game Night: Catan</h2>
+                <p className="text-sm text-emerald-400 font-medium flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  Live Match
+                </p>
+              </div>
+            </div>
+
+            {/* Player rows */}
+            <div className="p-6 space-y-6">
+              {scores.map((player, index) => {
+                const pct = Math.max(10, (player.score / maxScore) * 100);
+                return (
+                  <div key={player.id} className="group transition-all duration-300">
+                    <div className="flex items-center gap-4 mb-2">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
+                          index === 0
+                            ? "bg-yellow-500/20 text-yellow-500"
+                            : index === 1
+                            ? "bg-slate-300/20 text-slate-300"
+                            : index === 2
+                            ? "bg-amber-600/20 text-amber-600"
+                            : "bg-slate-800 text-slate-400"
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+
+                      <InitialAvatar
+                        name={player.name}
+                        colorClass={INITIALS_COLORS[player.colorIdx % INITIALS_COLORS.length]}
+                      />
+
+                      <div className="flex-1 font-semibold text-lg text-slate-200 group-hover:text-white transition-colors truncate">
+                        {player.name}
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={index === 0 ? "animate-bounce" : ""}>
+                          {player.icon}
+                        </span>
+                        <span className="font-mono text-2xl font-bold text-white tracking-tight tabular-nums">
+                          {player.score.toLocaleString()}
+                        </span>
+                        <span className="text-slate-500 text-sm font-medium">pts</span>
+                      </div>
+                    </div>
+
+                    {/* Score bar */}
+                    <div
+                      className="h-3 bg-slate-800/50 rounded-full overflow-hidden"
+                      style={{ marginLeft: "3rem" }}
+                    >
+                      <div
+                        className={`h-full ${player.barColor} rounded-full transition-all duration-1000 ease-out relative overflow-hidden`}
+                        style={{ width: `${pct}%` }}
+                      >
+                        <div
+                          className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite]"
+                          style={{
+                            backgroundImage:
+                              "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Card footer */}
+            <div className="p-4 bg-slate-950/60 border-t border-slate-800/50 text-center">
+              <p className="text-slate-500 text-sm font-medium">Live demo · updates every 2s</p>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(200%); }
+        }
+      `}</style>
     </div>
   );
 }

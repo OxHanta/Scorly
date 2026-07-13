@@ -78,86 +78,78 @@ function PlayerCard({
   isActive,
   onAddScore,
   isPending,
+  maxScore,
 }: {
   ps: PlayerScore;
   isActive: boolean;
   onAddScore: (playerId: string, delta: number) => void;
   isPending: boolean;
+  maxScore: number;
 }) {
   const [customAmount, setCustomAmount] = useState("1");
   const amount = parseInt(customAmount, 10) || 1;
 
   const animatedScore = useAnimatedNumber(ps.total);
-  const isGlowing = useScoreGlow(ps.total);
   const isWinner = !isActive && ps.rank === 1;
 
   return (
-    <motion.div
+    <div
       data-testid={`card-player-${ps.player.id}`}
-      animate={{
-        boxShadow: isGlowing
-          ? `0 0 0 2px ${ps.player.color}55, 0 0 18px 4px ${ps.player.color}28`
-          : "0 0 0 0px transparent, 0 0 0px 0px transparent",
-      }}
-      transition={{ duration: isGlowing ? 0.08 : 0.7, ease: "easeOut" }}
-      className="rounded-xl border border-slate-800 bg-slate-900 p-4"
+      className="bg-white/80 border border-[var(--line)] rounded-[17px] p-4 shadow-sm"
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <RankIcon rank={ps.rank} />
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: ps.player.color }}
-          />
-          <span className="font-semibold text-slate-100 truncate max-w-[110px]">
-            {ps.player.name}
-          </span>
-          <AnimatePresence>
-            {isWinner && <WinnerBadge />}
-          </AnimatePresence>
+      <div className="grid grid-cols-[25px_48px_1fr_68px_78px] items-center gap-3">
+        <span className="rank-number font-bold text-[var(--muted)] text-center">{ps.rank}</span>
+        <div className="player-avatar" style={{ "--avatar": ps.player.color } as React.CSSProperties}>
+          {ps.player.name[0].toUpperCase()}
         </div>
-        <span
-          data-testid={`text-score-${ps.player.id}`}
-          className="text-3xl font-bold tabular-nums flex-shrink-0 ml-3"
-          style={{ color: ps.player.color }}
-        >
-          {animatedScore}
-        </span>
+        <div className="player-info min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-bold text-[var(--ink)] truncate">{ps.player.name}</h3>
+            {isWinner && <WinnerBadge />}
+          </div>
+          <div className="meter">
+            <i style={{ width: `${Math.max(12, (ps.total / maxScore) * 100)}%`, background: ps.player.color }} />
+          </div>
+        </div>
+        <div className="score-number">
+          <strong>{animatedScore}</strong>
+          <span>PTS</span>
+        </div>
+        {isActive ? (
+          <div className="score-actions">
+            <button
+              data-testid={`button-decrement-${ps.player.id}`}
+              onClick={() => onAddScore(ps.player.id, -amount)}
+              disabled={isPending || ps.total === 0}
+            >
+              −
+            </button>
+            <button
+              data-testid={`button-increment-${ps.player.id}`}
+              className="add-point"
+              onClick={() => onAddScore(ps.player.id, amount)}
+              disabled={isPending}
+            >
+              +
+            </button>
+          </div>
+        ) : (
+          <div />
+        )}
       </div>
 
       {isActive && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <Button
-              data-testid={`button-decrement-${ps.player.id}`}
-              size="icon"
-              variant="outline"
-              onClick={() => onAddScore(ps.player.id, -amount)}
-              disabled={isPending}
-              className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 h-8 w-8"
-            >
-              <Minus className="w-3.5 h-3.5" />
-            </Button>
-            <Input
-              data-testid={`input-score-amount-${ps.player.id}`}
-              type="number"
-              min="1"
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              className="w-16 text-center bg-slate-800 border-slate-700 text-slate-200 h-8"
-            />
-            <Button
-              data-testid={`button-increment-${ps.player.id}`}
-              size="icon"
-              variant="outline"
-              onClick={() => onAddScore(ps.player.id, amount)}
-              disabled={isPending}
-              className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 h-8 w-8"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </Button>
-          </div>
-          <div className="flex gap-1 flex-wrap">
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[var(--line)]/50 justify-end">
+          <span className="text-xs text-[var(--muted)] font-semibold">Amount:</span>
+          <Input
+            data-testid={`input-score-amount-${ps.player.id}`}
+            type="number"
+            min="1"
+            value={customAmount}
+            onChange={(e) => setCustomAmount(e.target.value)}
+            className="w-16 text-center bg-white border-[var(--line)] text-[var(--ink)] h-8 rounded-lg"
+          />
+          <div className="flex gap-1">
             {[1, 5, 10].map((quick) => (
               <Button
                 key={quick}
@@ -166,7 +158,7 @@ function PlayerCard({
                 variant="secondary"
                 onClick={() => onAddScore(ps.player.id, quick)}
                 disabled={isPending}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 h-8"
+                className="bg-[var(--theme-wash)] hover:bg-[color-mix(in_srgb,var(--theme-a)_15%,white)] text-[var(--theme-a)] border border-[color-mix(in_srgb,var(--theme-a)_10%,white)] h-8 font-bold"
               >
                 +{quick}
               </Button>
@@ -174,7 +166,7 @@ function PlayerCard({
           </div>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -346,6 +338,14 @@ function ShareDialog({ game }: { game: GameWithScores }) {
   );
 }
 
+const themeOptions = [
+  { id: "bubblegum", label: "Bubblegum", icon: "🍬", gradient: "linear-gradient(135deg, #ff75af, #fcb94d)" },
+  { id: "midnight", label: "Midnight", icon: "🌙", gradient: "linear-gradient(135deg, #5b54cc, #203057)" },
+  { id: "sunset", label: "Sunset", icon: "🌅", gradient: "linear-gradient(135deg, #ff7b64, #f5bd3f)" },
+  { id: "arcade", label: "Arcade", icon: "👾", gradient: "linear-gradient(135deg, #b757e7, #40bdd1)" },
+  { id: "garden", label: "Garden", icon: "🌿", gradient: "linear-gradient(135deg, #44b982, #a4d864)" },
+];
+
 export default function GamePage() {
   const params = useParams<{ id: string }>();
   const gameId = params.id;
@@ -353,6 +353,15 @@ export default function GamePage() {
   const { toast } = useToast();
   const [showConfetti, setShowConfetti] = useState(false);
   const prevActiveRef = useRef<boolean | undefined>(undefined);
+
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem(`scorly-theme-${gameId}`) || "bubblegum";
+  });
+
+  const handleSetTheme = (newTheme: string) => {
+    setTheme(newTheme);
+    localStorage.setItem(`scorly-theme-${gameId}`, newTheme);
+  };
 
   const { data: game, isLoading, error } = useQuery<GameWithScores>({
     queryKey: ["/api/games", gameId],
@@ -409,61 +418,68 @@ export default function GamePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 max-w-3xl mx-auto">
-        <Skeleton className="h-8 w-48 mb-6 bg-slate-800" />
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 rounded-xl bg-slate-800" />)}
+      <main className="app-shell min-h-screen p-6" data-theme="bubblegum">
+        <div className="ambient ambient-one" />
+        <div className="ambient ambient-two" />
+        <div className="max-w-3xl mx-auto content-wrap">
+          <Skeleton className="h-8 w-48 mb-6 bg-white/20" />
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 rounded-xl bg-white/20" />)}
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (error || !game) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 font-medium mb-3">Game not found</p>
+      <main className="app-shell min-h-screen flex items-center justify-center" data-theme="bubblegum">
+        <div className="ambient ambient-one" />
+        <div className="ambient ambient-two" />
+        <div className="text-center z-10">
+          <p className="text-red-500 font-bold mb-3">Game not found</p>
           <Button
             onClick={() => setLocation("/dashboard")}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-[#3F7D58] hover:bg-[#2e5e41] text-white border-0 font-extrabold shadow-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 
   const usedColors = game.players.map((p) => p.color);
+  const maxScore = Math.max(1, ...game.playerScores.map((ps) => ps.total));
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50">
+    <main className="app-shell min-h-screen text-[var(--ink)]" data-theme={theme}>
+      <div className="ambient ambient-one" />
+      <div className="ambient ambient-two" />
+
       <Confetti active={showConfetti} />
 
-      {/* Top gradient accent */}
-      <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-blue-900/15 to-transparent pointer-events-none" />
-
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 relative z-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 relative z-10 content-wrap">
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8 flex-wrap">
+        <div className="flex items-center gap-3 mb-6 flex-wrap bg-white/80 backdrop-blur-md border border-[var(--line)] rounded-2xl p-4 shadow-sm">
           <Button
             data-testid="button-back"
             variant="ghost"
             size="icon"
             onClick={() => setLocation("/dashboard")}
-            className="text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            className="text-[var(--muted)] hover:text-[var(--theme-a)] hover:bg-[var(--theme-wash)]"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl font-bold text-white truncate">{game.name}</h1>
+              <h1 className="text-xl font-extrabold text-[var(--ink)] truncate">{game.name}</h1>
               {game.isActive ? (
                 <Badge
                   data-testid="badge-game-status"
-                  className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex gap-1.5 items-center"
+                  className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200 flex gap-1.5 items-center font-bold"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Live
@@ -471,14 +487,13 @@ export default function GamePage() {
               ) : (
                 <Badge
                   data-testid="badge-game-status"
-                  variant="outline"
-                  className="border-slate-700 text-slate-400"
+                  className="border-[var(--line)] text-[var(--muted)] bg-white font-bold"
                 >
                   Ended
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-[var(--muted)] mt-0.5">
               Started {formatDistanceToNow(new Date(game.createdAt), { addSuffix: true })}
             </p>
           </div>
@@ -492,27 +507,27 @@ export default function GamePage() {
                     variant="outline"
                     size="sm"
                     disabled={endMutation.isPending}
-                    className="border-slate-700 bg-slate-800 hover:bg-red-900/30 hover:border-red-700 hover:text-red-400 text-slate-300"
+                    className="border-[var(--line)] bg-white hover:bg-red-50 hover:border-red-300 hover:text-red-600 text-[var(--muted)] font-semibold"
                   >
                     <StopCircle className="w-3.5 h-3.5 mr-1.5" />
                     End Game
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="bg-slate-900 border-slate-700">
+                <AlertDialogContent className="bg-white border-[var(--line)] text-[var(--ink)]">
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="text-slate-100">End "{game.name}"?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-slate-400">
+                    <AlertDialogTitle className="text-[var(--ink)] font-extrabold">End "{game.name}"?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-[var(--muted)]">
                       The game will be moved to history. Scores are preserved and view-only links remain active.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+                    <AlertDialogCancel className="bg-white border-[var(--line)] text-[var(--ink)] hover:bg-slate-50">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                       data-testid="button-confirm-end"
                       onClick={() => endMutation.mutate()}
-                      className="bg-red-600 hover:bg-red-700 text-white"
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold"
                     >
                       End Game
                     </AlertDialogAction>
@@ -523,14 +538,35 @@ export default function GamePage() {
           </div>
         </div>
 
+        {/* Theme Picker */}
+        <div className="bg-white/80 backdrop-blur-md border border-[var(--line)] rounded-2xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4 shadow-sm">
+          <div className="flex flex-col">
+            <span className="text-xs font-extrabold text-[var(--muted)] uppercase tracking-wider">GAME VIBE</span>
+            <span className="text-sm text-[var(--ink)] font-medium">Choose a theme to fit the mood</span>
+          </div>
+          <div className="theme-dots mt-0">
+            {themeOptions.map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => handleSetTheme(opt.id)}
+                title={opt.label}
+                className={theme === opt.id ? "active" : ""}
+                style={{ background: opt.gradient }}
+              >
+                {opt.icon}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Scoreboard card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl mb-4 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+        <div className="bg-white/80 backdrop-blur-md border border-[var(--line)] rounded-2xl mb-6 overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-[var(--line)] flex items-center justify-between bg-[var(--theme-wash)]/40">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-yellow-500/10 rounded-lg">
-                <Trophy className="w-4 h-4 text-yellow-400" />
+              <div className="p-1.5 bg-[var(--theme-wash)] rounded-lg text-[var(--theme-a)]">
+                <Trophy className="w-4 h-4" />
               </div>
-              <span className="font-bold text-slate-100 text-base">Scoreboard</span>
+              <span className="font-extrabold text-[var(--ink)] text-base">Scoreboard</span>
             </div>
             {game.isActive && (
               <AddPlayerDialog gameId={gameId} usedColors={usedColors} />
@@ -540,8 +576,8 @@ export default function GamePage() {
           <div className="p-5">
             {game.players.length === 0 ? (
               <div className="text-center py-10">
-                <UserPlus className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-slate-500 text-sm">Add players to get started</p>
+                <UserPlus className="w-8 h-8 text-[var(--muted)] mx-auto mb-2" />
+                <p className="text-[var(--muted)] text-sm font-semibold">Add players to get started</p>
               </div>
             ) : (
               <motion.div layout className="flex flex-col gap-3">
@@ -560,6 +596,7 @@ export default function GamePage() {
                           scoreMutation.mutate({ playerId, delta })
                         }
                         isPending={scoreMutation.isPending}
+                        maxScore={maxScore}
                       />
                     </motion.div>
                   ))}
@@ -571,12 +608,12 @@ export default function GamePage() {
 
         {/* Score log */}
         {game.scoreEntries.length > 0 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-800 flex items-center gap-2.5 bg-slate-950/40">
-              <div className="p-1.5 bg-slate-800 rounded-lg">
-                <Clock className="w-4 h-4 text-slate-400" />
+          <div className="bg-white/80 backdrop-blur-md border border-[var(--line)] rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-[var(--line)] flex items-center gap-2.5 bg-[var(--theme-wash)]/40">
+              <div className="p-1.5 bg-[var(--theme-wash)] rounded-lg text-[var(--theme-a)]">
+                <Clock className="w-4 h-4" />
               </div>
-              <span className="font-bold text-slate-300 text-base">Score Log</span>
+              <span className="font-extrabold text-[var(--ink)] text-base">Score Log</span>
             </div>
             <div className="p-5">
               <div className="flex flex-col gap-1 max-h-64 overflow-y-auto">
@@ -587,21 +624,21 @@ export default function GamePage() {
                     <div
                       key={entry.id}
                       data-testid={`row-entry-${entry.id}`}
-                      className="flex items-center justify-between text-sm py-2 border-b border-slate-800 last:border-0"
+                      className="flex items-center justify-between text-sm py-2 border-b border-[var(--line)] last:border-0"
                     >
                       <div className="flex items-center gap-2">
                         <span
                           className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ backgroundColor: player.color }}
                         />
-                        <span className="text-slate-300">{player.name}</span>
-                        <span className="text-xs text-slate-600">
+                        <span className="text-[var(--ink)] font-semibold">{player.name}</span>
+                        <span className="text-xs text-[var(--muted)]">
                           {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })}
                         </span>
                       </div>
                       <span
-                        className={`font-semibold tabular-nums ${
-                          entry.delta >= 0 ? "text-emerald-400" : "text-red-400"
+                        className={`font-bold tabular-nums ${
+                          entry.delta >= 0 ? "text-emerald-600" : "text-red-600"
                         }`}
                       >
                         {entry.delta >= 0 ? "+" : ""}{entry.delta}
@@ -614,6 +651,6 @@ export default function GamePage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

@@ -65,13 +65,13 @@ function CreateGameForm({ onCreated }: { onCreated: (id: string) => void }) {
         value={name}
         onChange={(e) => setName(e.target.value)}
         disabled={mutation.isPending}
-        className="bg-slate-950 border-slate-700 focus-visible:ring-blue-500 text-slate-200 placeholder:text-slate-600"
+        className="bg-white border-[var(--line)] text-[var(--ink)] placeholder:text-[var(--muted)] focus-visible:ring-[var(--theme-a)] focus-visible:border-[var(--theme-a)]"
       />
       <Button
         data-testid="button-create-game"
         type="submit"
         disabled={!name.trim() || mutation.isPending}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+        className="w-full bg-[#3F7D58] hover:bg-[#2e5e41] text-white font-extrabold shadow-sm border-0 transition-colors active:scale-95"
       >
         <Plus className="w-4 h-4 mr-2" />
         {mutation.isPending ? "Creating..." : "Create Game"}
@@ -87,35 +87,35 @@ function GameCard({ game, onClick }: { game: GameWithScores; onClick: () => void
   return (
     <Card
       data-testid={`card-game-${game.id}`}
-      className="bg-slate-900 border-slate-800 hover:border-slate-600 transition-all cursor-pointer overflow-hidden group hover:shadow-lg hover:shadow-blue-900/5"
+      className="bg-white/80 backdrop-blur-md border-[var(--line)] hover:border-[var(--theme-a)] transition-all cursor-pointer overflow-hidden group hover:shadow-lg hover:shadow-[var(--theme-a)]/5 rounded-[17px]"
       onClick={onClick}
     >
       <CardContent className="p-0">
         <div className="p-5">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
+              <h3 className="text-lg font-bold text-[var(--ink)] group-hover:text-[var(--theme-a)] transition-colors">
                 {game.name}
               </h3>
-              <p className="text-xs text-slate-500 mt-1">Started {createdAt}</p>
+              <p className="text-xs text-[var(--muted)] mt-1">Started {createdAt}</p>
             </div>
             <Badge
               data-testid={`badge-status-${game.id}`}
-              className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20 flex gap-1.5 items-center"
+              className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200 flex gap-1.5 items-center font-bold"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live
             </Badge>
           </div>
 
-          <div className="bg-slate-950/50 rounded-lg p-4 flex items-center justify-between border border-slate-800/50">
+          <div className="bg-[color-mix(in_srgb,var(--theme-a)_4%,white)] rounded-xl p-4 flex items-center justify-between border border-[var(--line)]">
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2">
                 {game.playerScores.slice(0, 3).map((ps) => (
                   <div
                     key={ps.player.id}
                     data-testid={`avatar-player-${ps.player.id}`}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-slate-900 text-white shadow-sm"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-white text-white shadow-sm"
                     style={{ backgroundColor: ps.player.color }}
                     title={ps.player.name}
                   >
@@ -123,28 +123,28 @@ function GameCard({ game, onClick }: { game: GameWithScores; onClick: () => void
                   </div>
                 ))}
                 {game.playerScores.length > 3 && (
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-slate-900 bg-slate-700 text-white">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-white bg-slate-200 text-slate-700">
                     +{game.playerScores.length - 3}
                   </div>
                 )}
               </div>
-              <span className="text-sm text-slate-400 font-medium">
+              <span className="text-sm text-[var(--muted)] font-semibold">
                 {game.players.length} player{game.players.length !== 1 ? "s" : ""}
               </span>
             </div>
 
             {leader ? (
               <div className="text-right">
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                <p className="text-xs text-[var(--muted)] uppercase tracking-wider font-bold mb-1">
                   Current Leader
                 </p>
-                <p className="text-sm font-bold text-amber-400 flex items-center justify-end gap-1.5">
+                <p className="text-sm font-bold text-[var(--theme-a)] flex items-center justify-end gap-1.5">
                   <Trophy className="w-3.5 h-3.5" />
                   {leader.player.name} ({leader.total})
                 </p>
               </div>
             ) : (
-              <p className="text-sm text-slate-600 italic">No players yet</p>
+              <p className="text-sm text-[var(--muted)] italic">No players yet</p>
             )}
           </div>
         </div>
@@ -160,30 +160,30 @@ function EndedGameCard({ game, onClick }: { game: GameWithScores; onClick: () =>
   return (
     <Card
       data-testid={`card-game-${game.id}`}
-      className="bg-slate-900/60 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700 transition-all cursor-pointer"
+      className="bg-white/50 backdrop-blur-md border-[var(--line)] hover:bg-white/80 hover:border-[var(--theme-a)] transition-all cursor-pointer rounded-[17px]"
       onClick={onClick}
     >
       <CardContent className="p-5 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h3 className="font-semibold text-slate-300">{game.name}</h3>
+            <h3 className="font-semibold text-[var(--ink)]">{game.name}</h3>
             <Badge
               data-testid={`badge-status-${game.id}`}
               variant="outline"
-              className="text-[10px] uppercase border-slate-700 text-slate-500 h-5 px-1.5"
+              className="text-[10px] uppercase border-[var(--line)] text-[var(--muted)] h-5 px-1.5 font-bold"
             >
               Ended
             </Badge>
           </div>
-          <p className="text-xs text-slate-500">{createdAt}</p>
+          <p className="text-xs text-[var(--muted)]">{createdAt}</p>
         </div>
 
         {winner && (
-          <div className="bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-amber-500" />
+          <div className="bg-[var(--theme-wash)] border border-pink-100 px-3 py-1.5 rounded-lg flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-[var(--theme-a)]" />
             <div>
-              <p className="text-[10px] text-amber-500/70 font-bold uppercase leading-tight">Winner</p>
-              <p className="text-sm font-bold text-amber-400 leading-tight">
+              <p className="text-[10px] text-[var(--theme-a)] font-bold uppercase leading-tight">Winner</p>
+              <p className="text-sm font-bold text-[var(--ink)] leading-tight">
                 {winner.player.name} ({winner.total} pts)
               </p>
             </div>
@@ -218,70 +218,72 @@ export default function HomePage() {
   const totalPlayers = games?.reduce((acc, g) => acc + g.players.length, 0) ?? 0;
 
   return (
-    <div className="flex h-screen w-full bg-slate-950 text-slate-50 overflow-hidden font-sans">
+    <main className="app-shell flex h-screen w-full overflow-hidden font-sans" data-theme="bubblegum">
+      <div className="ambient ambient-one" />
+      <div className="ambient ambient-two" />
 
       {/* ── Sidebar ── */}
-      <div className="w-64 flex flex-col bg-slate-900 border-r border-slate-800 shrink-0 z-10">
+      <div className="w-64 flex flex-col bg-white/70 backdrop-blur-md border-r border-[var(--line)] shrink-0 z-10">
 
         {/* Logo */}
         <div className="p-6 pb-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/20">
-            <Gamepad2 className="text-white w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="font-bold text-xl tracking-tight text-white">Scorely</h1>
-            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Score board</p>
-          </div>
+          <img
+            src="https://res.cloudinary.com/dba2kof3v/image/upload/v1783945770/Black_2x_j4urn8.png"
+            alt="Scorely"
+            className="h-7 w-auto"
+          />
         </div>
 
-        <Separator className="bg-slate-800" />
+        <Separator className="bg-[var(--line)]" />
 
         {/* Quick stats */}
         <div className="p-4 space-y-1">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800/50 text-slate-300 text-sm font-medium">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[var(--theme-wash)] text-[var(--theme-a)] text-sm font-semibold">
             <div className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </div>
             <span>{isLoading ? "—" : activeGames.length} Active {activeGames.length === 1 ? "Game" : "Games"}</span>
           </div>
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 text-sm font-medium">
-            <Archive className="w-4 h-4 text-slate-500" />
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--muted)] text-sm font-semibold">
+            <Archive className="w-4 h-4 text-[var(--muted)]" />
             <span>{isLoading ? "—" : endedGames.length} Ended {endedGames.length === 1 ? "Game" : "Games"}</span>
           </div>
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 text-sm font-medium">
-            <Users className="w-4 h-4 text-slate-500" />
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-[var(--muted)] text-sm font-semibold">
+            <Users className="w-4 h-4 text-[var(--muted)]" />
             <span>{isLoading ? "—" : totalPlayers} {totalPlayers === 1 ? "Player" : "Players"} total</span>
           </div>
         </div>
 
-        <Separator className="bg-slate-800" />
+        <Separator className="bg-[var(--line)]" />
 
         {/* Create game form */}
         <div className="p-6 flex-1">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Start New</h2>
+          <h2 className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-4">Start New</h2>
           <CreateGameForm onCreated={(id) => setLocation(`/game/${id}`)} />
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-800 text-center">
-          <p className="text-xs text-slate-600 font-medium">Game night leaderboards</p>
+        <div className="p-4 border-t border-[var(--line)] text-center">
+          <p className="text-xs text-[var(--muted)] font-medium">Game night leaderboards</p>
         </div>
       </div>
 
       {/* ── Main content ── */}
       <div className="flex-1 overflow-y-auto relative">
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-32 bg-[var(--theme-wash)]/30 pointer-events-none" />
 
         <div className="p-8 max-w-5xl mx-auto space-y-10 relative z-10">
 
           {/* Active games */}
           <section>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-                <Star className="w-5 h-5" />
-              </div>
-              <h2 className="text-2xl font-bold text-white tracking-tight">Active Games</h2>
+              <img
+                src="https://res.cloudinary.com/dba2kof3v/image/upload/v1783977420/dice_xkjtfk.png"
+                alt="dice"
+                className="w-9 h-9"
+              />
+              <h2 className="text-2xl font-bold text-[#1A1A1A] tracking-tight">Active Games</h2>
               {!isLoading && (
                 <Badge variant="outline" className="ml-1 border-slate-700 bg-slate-800 text-slate-300">
                   {activeGames.length}
@@ -377,6 +379,6 @@ export default function HomePage() {
 
         </div>
       </div>
-    </div>
+    </main>
   );
 }

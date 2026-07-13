@@ -30,9 +30,7 @@ function WinnerBadge() {
       initial={{ scale: 0, opacity: 0, y: -4 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 500, damping: 22, delay: 0.2 }}
-      className="inline-flex items-center gap-1 text-sm font-semibold px-2.5 py-0.5 rounded-full
-        bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400
-        border border-yellow-300 dark:border-yellow-700 flex-shrink-0"
+      className="inline-flex items-center gap-1 text-sm font-bold px-2.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-300 flex-shrink-0"
     >
       <Crown className="w-3.5 h-3.5" />
       Winner!
@@ -63,12 +61,10 @@ function PlayerRow({
           : "0 0 0 0px transparent, 0 0 0px 0px transparent",
       }}
       transition={{ duration: isGlowing ? 0.08 : 0.8, ease: "easeOut" }}
-      className={`rounded-lg border p-4 sm:p-5 ${
-        isWinner
-          ? "border-yellow-300 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/10"
-          : ps.rank === 1
-          ? "border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/10"
-          : "border-card-border bg-card"
+      className={`rounded-2xl border p-4 sm:p-5 backdrop-blur-sm ${
+        isWinner || ps.rank === 1
+          ? "border-yellow-300 bg-yellow-50/80"
+          : "border-[var(--line)] bg-white/80"
       }`}
     >
       <div className="flex items-center gap-3 mb-3">
@@ -77,7 +73,7 @@ function PlayerRow({
           className="w-3.5 h-3.5 rounded-full flex-shrink-0"
           style={{ backgroundColor: ps.player.color }}
         />
-        <span className="font-semibold text-foreground text-lg flex-1 min-w-0 truncate">
+        <span className="font-bold text-[var(--ink)] text-lg flex-1 min-w-0 truncate">
           {ps.player.name}
         </span>
         <AnimatePresence>
@@ -85,13 +81,13 @@ function PlayerRow({
         </AnimatePresence>
         <span
           data-testid={`text-score-${ps.player.id}`}
-          className="text-4xl font-bold tabular-nums flex-shrink-0"
+          className="text-4xl font-extrabold tabular-nums flex-shrink-0"
           style={{ color: ps.player.color }}
         >
           {animatedScore}
         </span>
       </div>
-      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+      <div className="h-2.5 rounded-full bg-[var(--line)] overflow-hidden">
         <div
           className="h-full rounded-full"
           style={{
@@ -142,32 +138,39 @@ export default function ViewPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-full max-w-lg mx-auto px-6 space-y-4">
-          <Skeleton className="h-12 w-2/3 mx-auto" />
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
+      <main className="app-shell min-h-screen flex items-center justify-center" data-theme="bubblegum">
+        <div className="ambient ambient-one" />
+        <div className="ambient ambient-two" />
+        <div className="w-full max-w-lg mx-auto px-6 space-y-4 z-10">
+          <Skeleton className="h-12 w-2/3 mx-auto bg-white/40" />
+          <Skeleton className="h-24 rounded-2xl bg-white/40" />
+          <Skeleton className="h-24 rounded-2xl bg-white/40" />
+          <Skeleton className="h-24 rounded-2xl bg-white/40" />
         </div>
-      </div>
+      </main>
     );
   }
 
   if (error || !game) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center px-6">
-          <Gamepad2 className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-          <h2 className="text-xl font-bold text-foreground mb-1">Game Not Found</h2>
-          <p className="text-muted-foreground text-sm mb-4">
+      <main className="app-shell min-h-screen flex items-center justify-center" data-theme="bubblegum">
+        <div className="ambient ambient-one" />
+        <div className="ambient ambient-two" />
+        <div className="text-center px-6 z-10">
+          <Gamepad2 className="w-12 h-12 text-[var(--muted)] mx-auto mb-3" />
+          <h2 className="text-xl font-extrabold text-[var(--ink)] mb-1">Game Not Found</h2>
+          <p className="text-[var(--muted)] text-sm mb-4">
             This link may be invalid or the game has been deleted.
           </p>
-          <Button onClick={() => setLocation("/dashboard")}>
+          <Button
+            onClick={() => setLocation("/dashboard")}
+            className="bg-[#3F7D58] hover:bg-[#2e5e41] text-white border-0 font-extrabold shadow-sm"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -175,38 +178,42 @@ export default function ViewPage() {
   const gameEnded = !game.isActive;
 
   return (
-    <div className="min-h-screen bg-background">
+    <main className="app-shell min-h-screen text-[var(--ink)]" data-theme="bubblegum">
+      <div className="ambient ambient-one" />
+      <div className="ambient ambient-two" />
+
       <Confetti active={showConfetti} />
 
-      <div className="max-w-lg mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-lg mx-auto px-4 sm:px-6 py-8 relative z-10 content-wrap">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Gamepad2 className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="text-sm font-medium text-muted-foreground">Scorely</span>
+        <div className="text-center mb-8 bg-white/80 backdrop-blur-md border border-[var(--line)] rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-center mb-4">
+            <img
+              src="https://res.cloudinary.com/dba2kof3v/image/upload/v1783945770/Black_2x_j4urn8.png"
+              alt="Scorely"
+              className="h-7 w-auto"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">{game.name}</h1>
+          <h1 className="text-3xl font-extrabold text-[var(--ink)] mb-3">{game.name}</h1>
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Badge
-              variant={game.isActive ? "default" : "secondary"}
-              data-testid="badge-game-status"
-              className="flex items-center gap-1.5"
-            >
-              {game.isActive ? (
-                <>
-                  <Wifi className="w-3 h-3" />
-                  Live
-                </>
-              ) : (
-                <>
-                  <Clock className="w-3 h-3" />
-                  Ended
-                </>
-              )}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
+            {game.isActive ? (
+              <Badge
+                data-testid="badge-game-status"
+                className="bg-emerald-100 text-emerald-700 border-emerald-200 flex items-center gap-1.5 font-bold"
+              >
+                <Wifi className="w-3 h-3" />
+                Live
+              </Badge>
+            ) : (
+              <Badge
+                data-testid="badge-game-status"
+                className="border-[var(--line)] text-[var(--muted)] bg-white font-bold"
+              >
+                <Clock className="w-3 h-3 mr-1" />
+                Ended
+              </Badge>
+            )}
+            <span className="text-xs text-[var(--muted)] font-medium">
               {game.isActive
                 ? `Started ${formatDistanceToNow(new Date(game.createdAt), { addSuffix: true })}`
                 : game.endedAt
@@ -215,8 +222,8 @@ export default function ViewPage() {
             </span>
           </div>
           {game.isActive && (
-            <p className="text-xs text-muted-foreground mt-3 flex items-center justify-center gap-1.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <p className="text-xs text-[var(--muted)] mt-3 flex items-center justify-center gap-1.5 font-medium">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Scores update in real-time
             </p>
           )}
@@ -224,8 +231,8 @@ export default function ViewPage() {
 
         {/* Scoreboard */}
         {game.players.length === 0 ? (
-          <div className="text-center py-12 rounded-lg border border-dashed border-border">
-            <p className="text-muted-foreground">No players have been added yet.</p>
+          <div className="text-center py-12 rounded-2xl border border-dashed border-[var(--line)] bg-white/60">
+            <p className="text-[var(--muted)] font-semibold">No players have been added yet.</p>
           </div>
         ) : (
           <motion.div layout className="flex flex-col gap-3 mb-8">
@@ -250,6 +257,7 @@ export default function ViewPage() {
             data-testid="button-back-home"
             variant="outline"
             onClick={() => setLocation("/dashboard")}
+            className="border-[var(--line)] bg-white text-[var(--ink)] hover:bg-[var(--theme-wash)] font-semibold"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -257,10 +265,10 @@ export default function ViewPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-xs text-[var(--muted)] mt-6 font-medium">
           View-only link — scores are managed by the game host
         </p>
       </div>
-    </div>
+    </main>
   );
 }

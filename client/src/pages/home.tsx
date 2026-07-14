@@ -326,7 +326,7 @@ export default function HomePage() {
                   <div className="p-2 rounded-lg bg-slate-800 text-slate-400">
                     <Clock className="w-5 h-5" />
                   </div>
-                  <h2 className="text-xl font-bold text-slate-200 tracking-tight">Game History</h2>
+                  <h2 className="text-xl font-bold text-[#1A1A1A] tracking-tight">Game History</h2>
                   <Badge variant="outline" className="ml-1 border-slate-800 bg-slate-900/50 text-slate-400">
                     {endedGames.length}
                   </Badge>

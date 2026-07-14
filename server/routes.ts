@@ -20,38 +20,41 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+  // WebSocket setup (only in non-Vercel environments, as serverless environments do not support persistent WebSockets)
+  if (!process.env.VERCEL) {
+    const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
 
-  wss.on("connection", (ws, req) => {
-    const url = new URL(req.url || "", `http://localhost`);
-    const gameId = url.searchParams.get("gameId");
-    const shareId = url.searchParams.get("shareId");
+    wss.on("connection", (ws, req) => {
+      const url = new URL(req.url || "", `http://localhost`);
+      const gameId = url.searchParams.get("gameId");
+      const shareId = url.searchParams.get("shareId");
 
-    let resolvedGameId: string | null = gameId;
+      let resolvedGameId: string | null = gameId;
 
-    const setup = async () => {
-      if (!resolvedGameId && shareId) {
-        const game = await storage.getGameByShareId(shareId);
-        if (game) resolvedGameId = game.id;
-      }
+      const setup = async () => {
+        if (!resolvedGameId && shareId) {
+          const game = await storage.getGameByShareId(shareId);
+          if (game) resolvedGameId = game.id;
+        }
 
-      if (!resolvedGameId) {
-        ws.close();
-        return;
-      }
+        if (!resolvedGameId) {
+          ws.close();
+          return;
+        }
 
-      if (!clients.has(resolvedGameId)) {
-        clients.set(resolvedGameId, new Set());
-      }
-      clients.get(resolvedGameId)!.add(ws);
+        if (!clients.has(resolvedGameId)) {
+          clients.set(resolvedGameId, new Set());
+        }
+        clients.get(resolvedGameId)!.add(ws);
 
-      ws.on("close", () => {
-        clients.get(resolvedGameId!)?.delete(ws);
-      });
-    };
+        ws.on("close", () => {
+          clients.get(resolvedGameId!)?.delete(ws);
+        });
+      };
 
-    setup();
-  });
+      setup();
+    });
+  }
 
   app.get("/api/games", async (req, res) => {
     try {

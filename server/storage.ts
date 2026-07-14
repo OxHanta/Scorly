@@ -117,4 +117,109 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { db } from "./db";
+import { games } from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
+
+export class DatabaseStorage implements IStorage {
+  async getGames(): Promise<Game[]> {
+    const allGames = await db.select().from(games).orderBy(desc(games.createdAt));
+    return allGames as Game[];
+  }
+
+  async getGame(id: string): Promise<Game | undefined> {
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    return game as Game | undefined;
+  }
+
+  async getGameByShareId(shareId: string): Promise<Game | undefined> {
+    const [game] = await db.select().from(games).where(eq(games.shareId, shareId));
+    return game as Game | undefined;
+  }
+
+  async createGame(data: CreateGame): Promise<Game> {
+    const id = randomUUID();
+    const shareId = randomBytes(6).toString("hex");
+    const newGame: Game = {
+      id,
+      name: data.name,
+      shareId,
+      players: [],
+      scoreEntries: [],
+      createdAt: new Date().toISOString(),
+      isActive: true,
+    };
+    
+    await db.insert(games).values(newGame);
+    return newGame;
+  }
+
+  async addPlayer(gameId: string, data: AddPlayer): Promise<Game> {
+    const game = await this.getGame(gameId);
+    if (!game) throw new Error("Game not found");
+    
+    const player: Player = {
+      id: randomUUID(),
+      name: data.name,
+      color: data.color,
+    };
+    
+    game.players.push(player);
+    await db.update(games).set({ players: game.players }).where(eq(games.id, gameId));
+    return game;
+  }
+
+  async addScore(gameId: string, data: AddScore): Promise<Game> {
+    const game = await this.getGame(gameId);
+    if (!game) throw new Error("Game not found");
+    
+    const entry: ScoreEntry = {
+      id: randomUUID(),
+      playerId: data.playerId,
+      delta: data.delta,
+      note: data.note,
+      createdAt: new Date().toISOString(),
+    };
+    
+    game.scoreEntries.push(entry);
+    await db.update(games).set({ scoreEntries: game.scoreEntries }).where(eq(games.id, gameId));
+    return game;
+  }
+
+  async endGame(gameId: string): Promise<Game> {
+    const game = await this.getGame(gameId);
+    if (!game) throw new Error("Game not found");
+    
+    game.isActive = false;
+    game.endedAt = new Date().toISOString();
+    await db.update(games).set({ isActive: game.isActive, endedAt: game.endedAt }).where(eq(games.id, gameId));
+    return game;
+  }
+
+  async clearHistory(): Promise<void> {
+    await db.delete(games).where(eq(games.isActive, false));
+  }
+
+  computeGameWithScores(game: Game): GameWithScores {
+    const totals = new Map<string, number>();
+    game.players.forEach((p) => totals.set(p.id, 0));
+    game.scoreEntries.forEach((entry) => {
+      totals.set(entry.playerId, (totals.get(entry.playerId) ?? 0) + entry.delta);
+    });
+
+    const playerScores: PlayerScore[] = game.players.map((player) => ({
+      player,
+      total: totals.get(player.id) ?? 0,
+      rank: 0,
+    }));
+
+    playerScores.sort((a, b) => b.total - a.total);
+    playerScores.forEach((ps, i) => {
+      ps.rank = i + 1;
+    });
+
+    return { ...game, playerScores };
+  }
+}
+
+export const storage = new DatabaseStorage();

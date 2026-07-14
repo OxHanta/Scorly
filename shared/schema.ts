@@ -1,3 +1,4 @@
+import { pgTable, text, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const PLAYER_COLORS = [
@@ -67,3 +68,14 @@ export type PlayerScore = {
 export type GameWithScores = Game & {
   playerScores: PlayerScore[];
 };
+
+export const games = pgTable("games", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  shareId: text("share_id").notNull().unique(),
+  players: jsonb("players").notNull().default([]).$type<Player[]>(),
+  scoreEntries: jsonb("score_entries").notNull().default([]).$type<ScoreEntry[]>(),
+  createdAt: text("created_at").notNull(),
+  endedAt: text("ended_at"),
+  isActive: boolean("is_active").notNull().default(true),
+});

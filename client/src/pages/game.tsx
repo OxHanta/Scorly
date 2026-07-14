@@ -539,27 +539,6 @@ export default function GamePage() {
           </div>
         </div>
 
-        {/* Theme Picker */}
-        <div className="bg-white/80 backdrop-blur-md border border-[var(--line)] rounded-2xl p-5 mb-6 flex items-center justify-between flex-wrap gap-4 shadow-sm">
-          <div className="flex flex-col">
-            <span className="text-xs font-extrabold text-[var(--muted)] uppercase tracking-wider">GAME VIBE</span>
-            <span className="text-sm text-[var(--ink)] font-medium">Choose a theme to fit the mood</span>
-          </div>
-          <div className="theme-dots mt-0">
-            {themeOptions.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => handleSetTheme(opt.id)}
-                title={opt.label}
-                className={theme === opt.id ? "active" : ""}
-                style={{ background: opt.gradient }}
-              >
-                {opt.icon}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Scoreboard card */}
         <div className="bg-white/80 backdrop-blur-md border border-[var(--line)] rounded-2xl mb-6 overflow-hidden shadow-sm">
           <div className="px-6 py-4 border-b border-[var(--line)] flex items-center justify-between bg-[var(--theme-wash)]/40">

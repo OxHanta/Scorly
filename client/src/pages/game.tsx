@@ -370,6 +370,7 @@ export default function GamePage() {
       if (!res.ok) throw new Error("Game not found");
       return res.json();
     },
+    refetchInterval: 2000,
   });
 
   useEffect(() => {

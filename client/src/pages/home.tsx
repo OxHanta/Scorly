@@ -200,6 +200,7 @@ export default function HomePage() {
 
   const { data: games, isLoading, error } = useQuery<GameWithScores[]>({
     queryKey: ["/api/games"],
+    refetchInterval: 5000,
   });
 
   const clearMutation = useMutation({

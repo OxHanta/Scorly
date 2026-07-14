@@ -8,7 +8,9 @@ const httpServer = createServer(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Initialize routes
-registerRoutes(httpServer, app);
+// Initialize routes asynchronously
+(async () => {
+  await registerRoutes(httpServer, app);
+})();
 
 export default app;

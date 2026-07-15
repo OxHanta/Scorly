@@ -117,27 +117,31 @@ export class MemStorage implements IStorage {
   }
 }
 
-import { db } from "./db";
+import { getDb } from "./db";
 import { games } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 export class DatabaseStorage implements IStorage {
   async getGames(): Promise<Game[]> {
+    const db = getDb();
     const allGames = await db.select().from(games).orderBy(desc(games.createdAt));
     return allGames as Game[];
   }
 
   async getGame(id: string): Promise<Game | undefined> {
+    const db = getDb();
     const [game] = await db.select().from(games).where(eq(games.id, id));
     return game as Game | undefined;
   }
 
   async getGameByShareId(shareId: string): Promise<Game | undefined> {
+    const db = getDb();
     const [game] = await db.select().from(games).where(eq(games.shareId, shareId));
     return game as Game | undefined;
   }
 
   async createGame(data: CreateGame): Promise<Game> {
+    const db = getDb();
     const id = randomUUID();
     const shareId = randomBytes(6).toString("hex");
     const newGame: Game = {
@@ -149,30 +153,32 @@ export class DatabaseStorage implements IStorage {
       createdAt: new Date().toISOString(),
       isActive: true,
     };
-    
+
     await db.insert(games).values(newGame);
     return newGame;
   }
 
   async addPlayer(gameId: string, data: AddPlayer): Promise<Game> {
+    const db = getDb();
     const game = await this.getGame(gameId);
     if (!game) throw new Error("Game not found");
-    
+
     const player: Player = {
       id: randomUUID(),
       name: data.name,
       color: data.color,
     };
-    
+
     game.players.push(player);
     await db.update(games).set({ players: game.players }).where(eq(games.id, gameId));
     return game;
   }
 
   async addScore(gameId: string, data: AddScore): Promise<Game> {
+    const db = getDb();
     const game = await this.getGame(gameId);
     if (!game) throw new Error("Game not found");
-    
+
     const entry: ScoreEntry = {
       id: randomUUID(),
       playerId: data.playerId,
@@ -180,16 +186,17 @@ export class DatabaseStorage implements IStorage {
       note: data.note,
       createdAt: new Date().toISOString(),
     };
-    
+
     game.scoreEntries.push(entry);
     await db.update(games).set({ scoreEntries: game.scoreEntries }).where(eq(games.id, gameId));
     return game;
   }
 
   async endGame(gameId: string): Promise<Game> {
+    const db = getDb();
     const game = await this.getGame(gameId);
     if (!game) throw new Error("Game not found");
-    
+
     game.isActive = false;
     game.endedAt = new Date().toISOString();
     await db.update(games).set({ isActive: game.isActive, endedAt: game.endedAt }).where(eq(games.id, gameId));
@@ -197,6 +204,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async clearHistory(): Promise<void> {
+    const db = getDb();
     await db.delete(games).where(eq(games.isActive, false));
   }
 
@@ -222,4 +230,12 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+function createStorage(): IStorage {
+  if (process.env.DATABASE_URL) {
+    return new DatabaseStorage();
+  }
+  console.warn("DATABASE_URL not set, falling back to in-memory storage. Data will not persist between server restarts.");
+  return new MemStorage();
+}
+
+export const storage = createStorage();
